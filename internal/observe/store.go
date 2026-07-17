@@ -13,9 +13,24 @@ import (
 )
 
 const (
-	DefaultMaxLogs = 1000
-	MaxDayKeep     = 30
+	DefaultMaxLogs  = 1000
+	MaxDayKeep      = 30
+	DefaultHourKeep = 24
+	MaxHourKeep     = 168 // 7 days
 )
+
+// HourPoint is one hour bucket for adaptive time-series charts.
+type HourPoint struct {
+	Hour         string `json:"hour"`  // local hour key 2006-01-02T15
+	Label        string `json:"label"` // short axis label
+	Requests     int    `json:"requests"`
+	Success      int    `json:"success"`
+	Failed       int    `json:"failed"`
+	InputTokens  int64  `json:"input_tokens"`
+	OutputTokens int64  `json:"output_tokens"`
+	CachedTokens int64  `json:"cached_tokens"`
+	TotalTokens  int64  `json:"total_tokens"`
+}
 
 type RequestLog struct {
 	ID           string    `json:"id"`
@@ -327,14 +342,82 @@ func (s *Store) Stats(days int) map[string]any {
 		todayStats = DayStats{Date: todayKey}
 	}
 
-	return map[string]any{
-		"days":     days,
-		"today":    todayStats,
-		"series":   series,
-		"total":    total,
-		"accounts": accounts,
-		"log_count": len(s.logs),
+	hourlyHours := DefaultHourKeep
+	if days >= 7 {
+		hourlyHours = 48 // overview + recent window: last 48h by hour
 	}
+	if hourlyHours > MaxHourKeep {
+		hourlyHours = MaxHourKeep
+	}
+
+	return map[string]any{
+		"days":         days,
+		"today":        todayStats,
+		"series":       series,
+		"hourly":       s.hourlySeriesLocked(hourlyHours),
+		"hourly_hours": hourlyHours,
+		"total":        total,
+		"accounts":     accounts,
+		"log_count":    len(s.logs),
+	}
+}
+
+// hourlySeriesLocked builds contiguous hour buckets ending at the current local hour.
+func (s *Store) hourlySeriesLocked(hours int) []HourPoint {
+	if hours <= 0 {
+		hours = DefaultHourKeep
+	}
+	if hours > MaxHourKeep {
+		hours = MaxHourKeep
+	}
+	nowHour := time.Now().Local().Truncate(time.Hour)
+	start := nowHour.Add(-time.Duration(hours-1) * time.Hour)
+	agg := make(map[string]*HourPoint, hours)
+
+	for _, entry := range s.logs {
+		t := entry.Time.Local().Truncate(time.Hour)
+		if t.Before(start) || t.After(nowHour) {
+			continue
+		}
+		key := t.Format("2006-01-02T15")
+		point := agg[key]
+		if point == nil {
+			point = &HourPoint{Hour: key, Label: hourLabel(t, hours)}
+			agg[key] = point
+		}
+		point.Requests++
+		if entry.Status >= 200 && entry.Status < 400 {
+			point.Success++
+		} else if entry.Status > 0 {
+			point.Failed++
+		}
+		point.InputTokens += entry.InputTokens
+		point.OutputTokens += entry.OutputTokens
+		point.CachedTokens += entry.CachedTokens
+		point.TotalTokens += entry.TotalTokens
+	}
+
+	out := make([]HourPoint, 0, hours)
+	for i := hours - 1; i >= 0; i-- {
+		t := nowHour.Add(-time.Duration(i) * time.Hour)
+		key := t.Format("2006-01-02T15")
+		if point := agg[key]; point != nil {
+			point.Label = hourLabel(t, hours)
+			out = append(out, *point)
+			continue
+		}
+		out = append(out, HourPoint{
+			Hour: key, Label: hourLabel(t, hours),
+		})
+	}
+	return out
+}
+
+func hourLabel(t time.Time, windowHours int) string {
+	if windowHours > 24 {
+		return fmt.Sprintf("%d/%d %02d:00", int(t.Month()), t.Day(), t.Hour())
+	}
+	return fmt.Sprintf("%02d:00", t.Hour())
 }
 
 func (s *Store) ExportCSV(days int) (string, error) {

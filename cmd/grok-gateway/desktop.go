@@ -35,19 +35,25 @@ func runDesktop(store *config.Store, client *http.Client, oauth account.OAuthCli
 	var desktopContext context.Context
 	var desktopContextMu sync.RWMutex
 
+	// Compact default: fits a full overview without forcing users to widen
+	// the window. ZoomFactor < 1 densifies the layout so more content fits
+	// on typical 1080p / 125% DPI screens without occupying half the desktop.
 	err = wails.Run(&options.App{
 		Title:                    "Grok Gateway",
-		Width:                    1280,
-		Height:                   820,
-		MinWidth:                 980,
-		MinHeight:                680,
+		Width:                    1020,
+		Height:                   700,
+		MinWidth:                 860,
+		MinHeight:                580,
 		BackgroundColour:         options.NewRGB(8, 10, 15),
 		AssetServer:              &assetserver.Options{Handler: handler},
 		EnableDefaultContextMenu: false,
+		WindowStartState:         options.Normal,
 		OnStartup: func(ctx context.Context) {
 			desktopContextMu.Lock()
 			desktopContext = ctx
 			desktopContextMu.Unlock()
+			// Center after creation so multi-monitor DPI setups land correctly.
+			wailsruntime.WindowCenter(ctx)
 			go func() {
 				serveErr := <-serveResult
 				if serveErr != nil && !errors.Is(serveErr, http.ErrServerClosed) {
@@ -68,14 +74,19 @@ func runDesktop(store *config.Store, client *http.Client, oauth account.OAuthCli
 				if ctx != nil {
 					wailsruntime.WindowShow(ctx)
 					wailsruntime.WindowUnminimise(ctx)
+					wailsruntime.WindowCenter(ctx)
 				}
 			},
 		},
 		Windows: &windows.Options{
 			Theme: windows.Dark, BackdropType: windows.Mica,
 			WebviewIsTransparent: false, WindowIsTranslucent: false,
-			IsZoomControlEnabled: false, DisablePinchZoom: true,
-			ResizeDebounceMS: 16,
+			// Slight zoom-out so the dashboard fits the compact default window.
+			// Ctrl+wheel / pinch remain disabled so users cannot accidentally re-zoom.
+			IsZoomControlEnabled: false,
+			DisablePinchZoom:     true,
+			ZoomFactor:           0.92,
+			ResizeDebounceMS:     16,
 			Messages: &windows.Messages{
 				InstallationRequired: "Grok Gateway 需要 Microsoft WebView2 Runtime。按确定后安装。",
 				UpdateRequired:       "Microsoft WebView2 Runtime 版本过旧，需要更新。",

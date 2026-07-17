@@ -14,62 +14,123 @@
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark">G</div>
-        <div><strong>Grok Gateway</strong><span>LOCAL CONTROL PLANE</span></div>
+        <div>
+          <strong>Grok Gateway</strong>
+          <span>本地控制台</span>
+        </div>
       </div>
       <nav>
-        <button class="nav-item active" data-view="overview"><span class="nav-icon">⌁</span>概览</button>
-        <button class="nav-item" data-view="accounts"><span class="nav-icon">◉</span>账号池</button>
-        <button class="nav-item" data-view="stats"><span class="nav-icon">▣</span>统计</button>
-        <button class="nav-item" data-view="logs"><span class="nav-icon">≡</span>日志</button>
-        <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>配置</button>
+        <button class="nav-item active" data-view="overview">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13h6V4H4v9zm10 7h6V11h-6v9zM14 4v5h6V4h-6zM4 20h6v-5H4v5z"/></svg></span>
+          概览
+        </button>
+        <button class="nav-item" data-view="accounts">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.8 5.5-4.8S14 16 14.6 19"/><circle cx="17" cy="9" r="2.4"/><path d="M15.2 19c.4-1.8 1.7-3 3.5-3 1.2 0 2.2.5 2.8 1.4"/></svg></span>
+          账号池
+        </button>
+        <button class="nav-item" data-view="stats">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V10"/><path d="M12 16V7"/><path d="M16 16v-4"/></svg></span>
+          统计
+        </button>
+        <button class="nav-item" data-view="logs">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/><path d="M8.5 9h7"/><path d="M8.5 12.5h7"/><path d="M8.5 16h4.5"/></svg></span>
+          日志
+        </button>
+        <button class="nav-item" data-view="settings">
+          <span class="nav-icon" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 0 0 .3 1.8l.1.1a2 2 0 1 1-2.8 2.8l-.1-.1a1.7 1.7 0 0 0-1.8-.3 1.7 1.7 0 0 0-1 1.5V21a2 2 0 1 1-4 0v-.1a1.7 1.7 0 0 0-1-1.5 1.7 1.7 0 0 0-1.8.3l-.1.1a2 2 0 1 1-2.8-2.8l.1-.1a1.7 1.7 0 0 0 .3-1.8 1.7 1.7 0 0 0-1.5-1H3a2 2 0 1 1 0-4h.1a1.7 1.7 0 0 0 1.5-1 1.7 1.7 0 0 0-.3-1.8l-.1-.1a2 2 0 1 1 2.8-2.8l.1.1a1.7 1.7 0 0 0 1.8.3H9a1.7 1.7 0 0 0 1-1.5V3a2 2 0 1 1 4 0v.1a1.7 1.7 0 0 0 1 1.5 1.7 1.7 0 0 0 1.8-.3l.1-.1a2 2 0 1 1 2.8 2.8l-.1.1a1.7 1.7 0 0 0-.3 1.8V9c.3.6.9 1 1.5 1H21a2 2 0 1 1 0 4h-.1a1.7 1.7 0 0 0-1.5 1z"/></svg></span>
+          配置
+        </button>
       </nav>
       <div class="side-status">
         <div class="pulse-dot"></div>
-        <div><strong>网关运行中</strong><span id="side-version">正在连接…</span></div>
+        <div>
+          <strong>网关在线</strong>
+          <span id="side-version">正在连接…</span>
+        </div>
       </div>
     </aside>
 
     <main class="main">
       <header class="topbar">
         <div>
-          <p class="eyebrow" id="page-eyebrow">CONTROL CENTER</p>
+          <p class="eyebrow" id="page-eyebrow">控制中心</p>
           <h1 id="page-title">运行概览</h1>
         </div>
         <div class="top-actions">
-          <button class="btn btn-ghost" id="refresh-all">刷新用量</button>
-          <button class="btn btn-ghost" id="refresh-models">刷新模型</button>
-          <button class="btn btn-primary" id="launch-grok"><span>▶</span> 启动 Grok Build</button>
+          <button class="btn btn-ghost" id="refresh-all" type="button">
+            <span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M20 12a8 8 0 1 1-2.3-5.6"/><path d="M20 5v5h-5"/></svg></span>
+            刷新用量
+          </button>
+          <button class="btn btn-ghost" id="refresh-models" type="button">
+            <span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4.5 7.5v9L12 21l7.5-4.5v-9L12 3z"/><path d="M12 12 4.8 7.7"/><path d="M12 12v9"/><path d="m12 12 7.2-4.3"/></svg></span>
+            刷新模型
+          </button>
+          <button class="btn btn-primary" id="launch-grok" type="button">
+            <span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="currentColor"><path d="M8 5.5v13l11-6.5L8 5.5z"/></svg></span>
+            启动 Grok Build
+          </button>
         </div>
       </header>
 
       <section class="view active" id="view-overview">
         <div class="hero card">
           <div class="hero-copy">
-            <span class="status-chip"><i></i> API GATEWAY ONLINE</span>
-            <h2>Grok Build，<em>流量由你掌控。</em></h2>
-            <p>账号池自动接管 OAuth、用量和故障迁移。额度耗尽时，请求会无感切换到下一个可用账号。</p>
+            <span class="status-chip"><i></i> 网关运行中</span>
+            <h2>Grok Build 账号池，<em>流量由你掌控</em></h2>
+            <p>自动托管 OAuth、同步用量、会话粘滞与故障迁移。额度耗尽或触发限流时，请求会无感切换到下一个可用账号。</p>
             <div class="endpoint-row">
+              <span class="endpoint-label">Base URL</span>
               <code id="base-url">http://127.0.0.1:8787/v1</code>
-              <button class="icon-btn" id="copy-base" title="复制">⧉</button>
+              <button class="icon-btn" id="copy-base" type="button" title="复制地址" aria-label="复制地址">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/></svg>
+              </button>
             </div>
           </div>
           <div class="orb-wrap"><div class="orb"><span>G</span></div><div class="orbit"></div></div>
         </div>
 
         <div class="stats-grid" id="overview-stats">
-          <article class="stat card"><span>账号总数</span><strong id="stat-total">0</strong><small id="stat-total-note">等待添加账号</small></article>
-          <article class="stat card"><span>当前可用</span><strong id="stat-available">0</strong><small class="good">自动健康路由</small></article>
-          <article class="stat card"><span>今日 Token</span><strong id="stat-tokens">—</strong><small id="stat-tokens-note">本地计量</small></article>
-          <article class="stat card"><span>今日请求</span><strong id="stat-requests">—</strong><small id="stat-requests-note">成功 / 失败</small></article>
+          <article class="stat card">
+            <span class="stat-label">账号总数</span>
+            <strong class="num" id="stat-total">0</strong>
+            <small id="stat-total-note">等待添加账号</small>
+          </article>
+          <article class="stat card">
+            <span class="stat-label">当前可用</span>
+            <strong class="num" id="stat-available">0</strong>
+            <small class="good">健康路由中</small>
+          </article>
+          <article class="stat card">
+            <span class="stat-label">今日 Token</span>
+            <strong class="num" id="stat-tokens">—</strong>
+            <small id="stat-tokens-note">本地计量</small>
+          </article>
+          <article class="stat card">
+            <span class="stat-label">今日请求</span>
+            <strong class="num" id="stat-requests">—</strong>
+            <small id="stat-requests-note">成功 / 失败</small>
+          </article>
         </div>
 
         <div class="content-grid">
           <section class="card panel">
-            <div class="panel-head"><div><span class="overline">ACCOUNT POOL</span><h3>账号状态</h3></div><button class="text-btn" data-go="accounts">管理全部 →</button></div>
+            <div class="panel-head">
+              <div>
+                <span class="overline">账号池</span>
+                <h3>账号状态</h3>
+              </div>
+              <button class="text-btn" data-go="accounts" type="button">管理全部 →</button>
+            </div>
             <div id="overview-accounts" class="mini-list"></div>
           </section>
           <section class="card panel network-panel">
-            <div class="panel-head"><div><span class="overline">NETWORK</span><h3>流量路径</h3></div><span class="live-badge">LIVE</span></div>
+            <div class="panel-head">
+              <div>
+                <span class="overline">网络</span>
+                <h3>流量路径</h3>
+              </div>
+              <span class="live-badge">实时</span>
+            </div>
             <div class="route-map">
               <div class="route-node"><b>01</b><div><strong>Grok Build</strong><span>本地客户端</span></div></div>
               <div class="route-line"><i></i></div>
@@ -78,8 +139,11 @@
               <div class="route-node"><b>03</b><div><strong>出站代理</strong><span id="route-proxy">127.0.0.1:7890</span></div></div>
             </div>
             <div class="mini-chart-wrap">
-              <span class="overline">7 日 Token</span>
-              <div id="overview-chart" class="mini-chart"></div>
+              <div class="chart-head">
+                <span class="overline" id="overview-chart-title">近 48 小时 Token</span>
+                <span class="chart-meta" id="overview-chart-meta">按小时</span>
+              </div>
+              <div id="overview-chart" class="mini-chart line-chart"></div>
             </div>
           </section>
         </div>
@@ -88,13 +152,19 @@
       <section class="view" id="view-accounts">
         <div class="section-toolbar card">
           <div>
-            <span class="overline">OAUTH ACCOUNT POOL</span>
+            <span class="overline">账号池</span>
             <h2>托管账号</h2>
-            <p>支持 Device OAuth 与自定义 API Key。设为首选会立即迁移新请求。</p>
+            <p>支持 Device OAuth 与 API Key。设为首选后，新请求会优先走该账号；不可用时自动切换。</p>
           </div>
           <div class="toolbar-actions">
-            <button class="btn btn-ghost" id="add-api-key">＋ API Key</button>
-            <button class="btn btn-primary" id="add-account">＋ OAuth 账号</button>
+            <button class="btn btn-ghost" id="add-api-key" type="button">
+              <span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 12a4 4 0 1 1 0-.01"/><path d="M10.5 12H21"/><path d="M17 12v2.5"/><path d="M14 12v1.8"/></svg></span>
+              添加 API Key
+            </button>
+            <button class="btn btn-primary" id="add-account" type="button">
+              <span class="btn-ico" aria-hidden="true"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 5v14"/><path d="M5 12h14"/></svg></span>
+              添加 OAuth 账号
+            </button>
           </div>
         </div>
         <div id="account-grid" class="account-grid"></div>
@@ -103,28 +173,54 @@
       <section class="view" id="view-stats">
         <div class="section-toolbar card">
           <div>
-            <span class="overline">LOCAL TOKEN METERING</span>
+            <span class="overline">本地计量</span>
             <h2>用量统计</h2>
-            <p>从每次 Responses 响应解析 input / output / cached tokens，按日聚合。与上游 Billing 周期互补。</p>
+            <p>从每次模型响应解析输入 / 输出 / 缓存 Token，按日聚合。与上游套餐周期互补，用于观察真实消耗。</p>
           </div>
           <div class="toolbar-actions">
-            <button class="btn btn-ghost" id="export-csv">导出 CSV</button>
-            <button class="btn btn-ghost" id="reload-stats">刷新统计</button>
+            <button class="btn btn-ghost" id="export-csv" type="button">导出 CSV</button>
+            <button class="btn btn-ghost" id="reload-stats" type="button">刷新统计</button>
           </div>
         </div>
         <div class="stats-grid four">
-          <article class="stat card"><span>区间请求</span><strong id="range-requests">0</strong><small id="range-success">—</small></article>
-          <article class="stat card"><span>输入 Token</span><strong id="range-input">0</strong><small>prompt</small></article>
-          <article class="stat card"><span>输出 Token</span><strong id="range-output">0</strong><small>completion</small></article>
-          <article class="stat card"><span>缓存命中</span><strong id="range-cached">0</strong><small>cached_tokens</small></article>
+          <article class="stat card">
+            <span class="stat-label">近 7 日请求</span>
+            <strong class="num" id="range-requests">0</strong>
+            <small id="range-success">—</small>
+          </article>
+          <article class="stat card">
+            <span class="stat-label">输入 Token</span>
+            <strong class="num" id="range-input">0</strong>
+            <small>Input</small>
+          </article>
+          <article class="stat card">
+            <span class="stat-label">输出 Token</span>
+            <strong class="num" id="range-output">0</strong>
+            <small>Output</small>
+          </article>
+          <article class="stat card">
+            <span class="stat-label">缓存命中</span>
+            <strong class="num" id="range-cached">0</strong>
+            <small>Cached</small>
+          </article>
         </div>
         <div class="content-grid">
           <section class="card panel">
-            <div class="panel-head"><div><span class="overline">TREND</span><h3>7 日 Token 趋势</h3></div></div>
+            <div class="panel-head">
+              <div>
+                <span class="overline">趋势</span>
+                <h3>近 7 日 Token</h3>
+              </div>
+            </div>
             <div id="stats-chart" class="big-chart"></div>
           </section>
           <section class="card panel">
-            <div class="panel-head"><div><span class="overline">BY ACCOUNT</span><h3>账号对比</h3></div></div>
+            <div class="panel-head">
+              <div>
+                <span class="overline">分账号</span>
+                <h3>消耗对比</h3>
+              </div>
+            </div>
             <div id="stats-accounts" class="mini-list"></div>
           </section>
         </div>
@@ -133,13 +229,13 @@
       <section class="view" id="view-logs">
         <div class="section-toolbar card">
           <div>
-            <span class="overline">REQUEST LOG</span>
-            <h2>请求日志</h2>
-            <p>记录方法、路径、账号、模型、状态、耗时与 Token。默认不保存完整 prompt。</p>
+            <span class="overline">请求日志</span>
+            <h2>调用记录</h2>
+            <p>记录方法、路径、账号、模型、状态码、耗时与 Token。默认不保存完整对话内容。</p>
           </div>
           <div class="toolbar-actions">
-            <button class="btn btn-ghost" id="reload-logs">刷新</button>
-            <button class="btn btn-danger" id="clear-logs">清空日志</button>
+            <button class="btn btn-ghost" id="reload-logs" type="button">刷新</button>
+            <button class="btn btn-danger" id="clear-logs" type="button">清空日志</button>
           </div>
         </div>
         <div class="card log-panel">
@@ -147,8 +243,15 @@
             <table class="log-table">
               <thead>
                 <tr>
-                  <th>时间</th><th>方法</th><th>路径</th><th>账号</th><th>模型</th>
-                  <th>状态</th><th>耗时</th><th>Token</th><th>错误</th>
+                  <th>时间</th>
+                  <th>方法</th>
+                  <th>路径</th>
+                  <th>账号</th>
+                  <th>模型</th>
+                  <th>状态</th>
+                  <th>耗时</th>
+                  <th>Token</th>
+                  <th>错误</th>
                 </tr>
               </thead>
               <tbody id="log-body"></tbody>
@@ -160,25 +263,60 @@
       <section class="view" id="view-settings">
         <form id="settings-form" class="settings-layout">
           <section class="card settings-card">
-            <div class="settings-heading"><div class="setting-icon">⌁</div><div><h3>本地网关</h3><p>控制 Grok Build 连接到的本地入口。</p></div></div>
-            <label>监听地址<input name="listen" autocomplete="off" placeholder="127.0.0.1:8787"><small>安全限制：仅允许 127.0.0.1 或 localhost</small></label>
-            <label>Grok Build 上游<input name="upstream_base_url" autocomplete="off"></label>
+            <div class="settings-heading">
+              <div class="setting-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M12 3 4.5 7.5v9L12 21l7.5-4.5v-9L12 3z"/></svg>
+              </div>
+              <div>
+                <h3>本地网关</h3>
+                <p>Grok Build 连接的本机入口地址。</p>
+              </div>
+            </div>
+            <label>监听地址
+              <input name="listen" autocomplete="off" placeholder="127.0.0.1:8787">
+              <small>仅允许 127.0.0.1 或 localhost</small>
+            </label>
+            <label>Grok Build 上游
+              <input name="upstream_base_url" autocomplete="off">
+            </label>
           </section>
           <section class="card settings-card">
-            <div class="settings-heading"><div class="setting-icon purple">⇄</div><div><h3>网络代理</h3><p>OAuth、用量查询和推理请求都从这里出站。</p></div></div>
-            <label>出站代理<input name="outbound_proxy" autocomplete="off" placeholder="http://127.0.0.1:7890"><small>默认兼容 Clash / Mihomo mixed-port</small></label>
-            <label>账号冷却时间<input name="cooldown" autocomplete="off" placeholder="5m"><small>上游未返回 Retry-After 时使用</small></label>
+            <div class="settings-heading">
+              <div class="setting-icon purple" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 7h10v4H7z"/><path d="M7 13h10v4H7z"/><path d="M4 9h3"/><path d="M17 15h3"/></svg>
+              </div>
+              <div>
+                <h3>网络代理</h3>
+                <p>OAuth、用量与推理请求的统一出站通道。</p>
+              </div>
+            </div>
+            <label>出站代理
+              <input name="outbound_proxy" autocomplete="off" placeholder="http://127.0.0.1:7890">
+              <small>兼容 Clash / Mihomo mixed-port</small>
+            </label>
+            <label>账号冷却时间
+              <input name="cooldown" autocomplete="off" placeholder="5m">
+              <small>上游未返回 Retry-After 时使用</small>
+            </label>
           </section>
           <section class="card settings-card full">
-            <div class="settings-heading"><div class="setting-icon">🔑</div><div><h3>网关 API Key</h3><p>可选。启用后访问 /v1/* 需携带 Authorization: Bearer &lt;key&gt; 或 x-api-key。管理界面不受影响。真实 xAI 鉴权仍由账号池完成。</p></div></div>
+            <div class="settings-heading">
+              <div class="setting-icon" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M8 12a4 4 0 1 1 0-.01"/><path d="M10.5 12H21"/><path d="M17 12v2.5"/><path d="M14 12v1.8"/></svg>
+              </div>
+              <div>
+                <h3>网关 API Key</h3>
+                <p>可选。开启后访问 <code class="inline-code">/v1/*</code> 需携带网关密钥；管理界面不受影响。真实 xAI 鉴权仍由账号池完成。</p>
+              </div>
+            </div>
             <div class="key-row">
               <div>
                 <span class="key-status" id="key-status">未设置网关密钥</span>
                 <label class="check-label"><input type="checkbox" name="require_api_key" id="require-api-key"> 强制校验网关 API Key</label>
-                <label class="check-label"><input type="checkbox" name="log_request_bodies" id="log-bodies"> 在日志中记录请求体摘要（隐私风险）</label>
+                <label class="check-label"><input type="checkbox" name="log_request_bodies" id="log-bodies"> 在日志中记录请求体摘要（有隐私风险）</label>
               </div>
               <div class="toolbar-actions">
-                <button class="btn btn-ghost" type="button" id="rotate-key">生成/轮换密钥</button>
+                <button class="btn btn-ghost" type="button" id="rotate-key">生成 / 轮换密钥</button>
                 <button class="btn btn-danger" type="button" id="clear-key">清除密钥</button>
               </div>
             </div>
@@ -189,7 +327,10 @@
             </div>
           </section>
           <div class="settings-footer">
-            <div><strong>配置保存在 EXE 同目录</strong><span>修改网络设置后需重启程序生效。API Key 开关即时写入，/v1 校验立即生效。</span></div>
+            <div>
+              <strong>配置保存在程序同目录</strong>
+              <span>修改网络相关项后需重启程序；API Key 开关写入后立即对 /v1 生效。</span>
+            </div>
             <button class="btn btn-primary" type="submit">保存配置</button>
           </div>
         </form>
@@ -199,12 +340,12 @@
 
   <div class="modal-backdrop" id="oauth-modal" hidden>
     <div class="modal card">
-      <button class="modal-close" data-close-modal>×</button>
+      <button class="modal-close" data-close-modal type="button" aria-label="关闭">×</button>
       <div class="oauth-logo">G</div>
-      <span class="overline">DEVICE OAUTH</span>
+      <span class="overline">Device OAuth</span>
       <h2>连接 Grok Build 账号</h2>
-      <p id="oauth-message">正在向 xAI 请求安全授权链接…</p>
-      <div class="code-box" id="oauth-code" hidden><span>授权码</span><strong>••••••</strong></div>
+      <p id="oauth-message">正在向 xAI 请求授权链接…</p>
+      <div class="code-box" id="oauth-code" hidden><span>用户码</span><strong>••••••</strong></div>
       <a class="btn btn-primary wide" id="oauth-link" target="_blank" rel="noopener" hidden>打开授权页面</a>
       <div class="oauth-wait"><i></i><span id="oauth-status">准备中</span></div>
     </div>
@@ -212,14 +353,18 @@
 
   <div class="modal-backdrop" id="apikey-modal" hidden>
     <div class="modal card">
-      <button class="modal-close" data-close-apikey>×</button>
+      <button class="modal-close" data-close-apikey type="button" aria-label="关闭">×</button>
       <div class="oauth-logo">K</div>
-      <span class="overline">API KEY ACCOUNT</span>
-      <h2>添加 API Key 账号</h2>
-      <p>用于 xAI Console API Key。与 OAuth 账号共用池。Grok Build 原生路径通常仍推荐 OAuth。</p>
-      <label class="modal-label">显示名称<input id="apikey-name" placeholder="optional"></label>
-      <label class="modal-label">API Key<input id="apikey-value" placeholder="xai-..." autocomplete="off"></label>
-      <button class="btn btn-primary wide" id="apikey-save">保存到账号池</button>
+      <span class="overline">API Key 账号</span>
+      <h2>添加 API Key</h2>
+      <p>用于 xAI Console API Key，与 OAuth 账号共用池。Grok Build 原生路径通常更推荐 OAuth。</p>
+      <label class="modal-label">显示名称
+        <input id="apikey-name" placeholder="可选，例如 work-key">
+      </label>
+      <label class="modal-label">API Key
+        <input id="apikey-value" placeholder="xai-..." autocomplete="off">
+      </label>
+      <button class="btn btn-primary wide" id="apikey-save" type="button">保存到账号池</button>
     </div>
   </div>
 

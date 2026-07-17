@@ -42,7 +42,7 @@ scripts/generate_icon.py          Windows 图标生成
 
 ## 3. 桌面宿主
 
-默认启动路径使用 `wails.Run` 创建 1280×820 的独立 Windows GUI 窗口。Wails AssetServer 将窗口内的请求直接交给现有 `admin.Handler`，因此前端仍复用相同管理 API；同时另行监听 `127.0.0.1:8787`，供外部 Grok Build 调用 `/v1/*`。
+默认启动路径使用 `wails.Run` 创建 **1020×700** 的紧凑窗口（最小 860×580，居中）。`ZoomFactor=0.92` 略微缩小页面比例；禁用 Ctrl+滚轮 / pinch。账号池固定每行 2 张竖向卡片（超宽 3 张）；概览「近 7 日 Token」为矮 sparkline。宽屏（≥1180）再展开多栏统计。Wails AssetServer 将窗口内请求交给 `admin.Handler`；同时监听 `127.0.0.1:8787` 供 Grok Build 调用 `/v1/*`。
 
 窗口生命周期规则：
 

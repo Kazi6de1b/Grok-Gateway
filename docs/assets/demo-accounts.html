@@ -7,11 +7,11 @@
   <title>Grok Gateway — Accounts</title>
   <link rel="stylesheet" href="style.css">
   <style>
-    html, body { width: 1280px; min-height: 820px; overflow: hidden; }
-    .app-shell { min-height: 820px; }
-    body { filter: brightness(1.12) contrast(1.06) saturate(1.08); }
-    .ambient { opacity: .18 !important; }
-    .card { background: linear-gradient(145deg,rgba(28,32,42,.96),rgba(16,18,26,.94)) !important; }
+    html, body { width: 1180px; min-height: 760px; overflow: hidden; }
+    .app-shell { min-height: 760px; }
+    body { filter: brightness(1.08) contrast(1.04) saturate(1.06); }
+    .ambient { opacity: .16 !important; }
+    .account-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
   </style>
 </head>
 <body>
@@ -21,84 +21,81 @@
     <aside class="sidebar">
       <div class="brand">
         <div class="brand-mark">G</div>
-        <div><strong>Grok Gateway</strong><span>LOCAL CONTROL PLANE</span></div>
+        <div><strong>Grok Gateway</strong><span>本地控制台</span></div>
       </div>
       <nav>
-        <button class="nav-item"><span class="nav-icon">⌁</span>概览</button>
-        <button class="nav-item active"><span class="nav-icon">◉</span>账号池</button>
-        <button class="nav-item"><span class="nav-icon">⚙</span>配置</button>
+        <button class="nav-item"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 13h6V4H4v9zm10 7h6V11h-6v9zM14 4v5h6V4h-6zM4 20h6v-5H4v5z"/></svg></span>概览</button>
+        <button class="nav-item active"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="9" cy="8" r="3.2"/><path d="M3.5 19c.6-3 2.8-4.8 5.5-4.8S14 16 14.6 19"/></svg></span>账号池</button>
+        <button class="nav-item"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M4 19V5"/><path d="M4 19h16"/><path d="M8 16V10"/><path d="M12 16V7"/><path d="M16 16v-4"/></svg></span>统计</button>
+        <button class="nav-item"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><path d="M7 4h10a2 2 0 0 1 2 2v12a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2z"/></svg></span>日志</button>
+        <button class="nav-item"><span class="nav-icon"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="3"/></svg></span>配置</button>
       </nav>
       <div class="side-status">
         <div class="pulse-dot"></div>
-        <div><strong>网关运行中</strong><span>v0.3.0 · 127.0.0.1</span></div>
+        <div><strong>网关在线</strong><span>v0.4.1 · 127.0.0.1</span></div>
       </div>
     </aside>
-
     <main class="main">
       <header class="topbar">
         <div>
-          <p class="eyebrow">ACCOUNT MANAGEMENT</p>
+          <p class="eyebrow">账号管理</p>
           <h1>账号池</h1>
         </div>
         <div class="top-actions">
           <button class="btn btn-ghost">刷新用量</button>
-          <button class="btn btn-primary"><span>▶</span> 启动 Grok Build</button>
+          <button class="btn btn-ghost">刷新模型</button>
+          <button class="btn btn-primary">启动 Grok Build</button>
         </div>
       </header>
-
       <section class="view active">
         <div class="section-toolbar card">
           <div>
-            <span class="overline">OAUTH ACCOUNT POOL</span>
+            <span class="overline">账号池</span>
             <h2>托管账号</h2>
-            <p>设为首选会立即迁移新请求；首选账号不可用时自动故障转移。</p>
+            <p>支持 Device OAuth 与 API Key。设为首选后，新请求会优先走该账号；不可用时自动切换。</p>
           </div>
-          <button class="btn btn-primary">＋ 添加账号</button>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost">添加 API Key</button>
+            <button class="btn btn-primary">添加 OAuth 账号</button>
+          </div>
         </div>
         <div class="account-grid">
           <article class="account-card card preferred">
-            <div class="account-top">
-              <div class="avatar">A</div>
-              <div class="account-meta"><strong>alice@example.com</strong><span>alice@example.com</span></div>
-              <span class="badge lime">首选账号</span>
-            </div>
-            <div class="usage-head"><span>SuperGrok</span><strong>28%</strong></div>
+            <div class="account-top"><div class="avatar">A</div><div class="account-meta"><strong>alice@example.com</strong><span>alice@example.com · OAuth</span></div><span class="badge lime">首选</span></div>
+            <div class="model-row"><span class="model-tag">grok-4.5</span><span class="model-tag">grok-4.5-build-free</span></div>
+            <div class="usage-head"><span>SuperGrok</span><strong class="num">28%</strong></div>
             <div class="progress"><i style="width:28%"></i></div>
-            <div class="usage-foot"><span>已用 42.0 / 150.0</span><span>重置 5天 12小时</span></div>
+            <div class="usage-foot"><span>已用 42.0 / 150.0</span><span>重置倒计时 5 天 12 小时</span></div>
             <div class="account-actions">
               <button class="btn btn-ghost">当前首选</button>
               <button class="btn btn-ghost">刷新用量</button>
+              <button class="btn btn-ghost">刷新模型</button>
               <button class="btn btn-ghost">停用</button>
               <button class="btn btn-danger">删除</button>
             </div>
           </article>
           <article class="account-card card">
-            <div class="account-top">
-              <div class="avatar">B</div>
-              <div class="account-meta"><strong>bob@example.com</strong><span>bob@example.com</span></div>
-              <span class="badge lime">可用</span>
-            </div>
-            <div class="usage-head"><span>SuperGrok</span><strong>67%</strong></div>
+            <div class="account-top"><div class="avatar">B</div><div class="account-meta"><strong>bob@example.com</strong><span>bob@example.com · OAuth</span></div><span class="badge lime">可用</span></div>
+            <div class="model-row"><span class="model-tag">grok-4.5</span></div>
+            <div class="usage-head"><span>SuperGrok</span><strong class="num">67%</strong></div>
             <div class="progress"><i style="width:67%"></i></div>
-            <div class="usage-foot"><span>已用 100.5 / 150.0</span><span>重置 5天 12小时</span></div>
+            <div class="usage-foot"><span>已用 100.5 / 150.0</span><span>重置倒计时 5 天 12 小时</span></div>
             <div class="account-actions">
-              <button class="btn btn-primary">切换到此账号</button>
+              <button class="btn btn-primary">设为首选</button>
               <button class="btn btn-ghost">刷新用量</button>
+              <button class="btn btn-ghost">刷新模型</button>
               <button class="btn btn-ghost">停用</button>
               <button class="btn btn-danger">删除</button>
             </div>
           </article>
           <article class="account-card card">
-            <div class="account-top">
-              <div class="avatar">C</div>
-              <div class="account-meta"><strong>carol@example.com</strong><span>carol@example.com</span></div>
-              <span class="badge amber">冷却中</span>
-            </div>
-            <div class="usage-head"><span>Grok Pro</span><strong>100%</strong></div>
+            <div class="account-top"><div class="avatar">C</div><div class="account-meta"><strong>carol@example.com</strong><span>carol@example.com · OAuth</span></div><span class="badge amber">冷却中</span></div>
+            <div class="model-row"><span class="model-tag">grok-4.5</span></div>
+            <div class="usage-head"><span>Grok Pro</span><strong class="num">100%</strong></div>
             <div class="progress"><i class="high" style="width:100%"></i></div>
-            <div class="usage-foot"><span>已用 150.0 / 150.0</span><span>重置 1天 3小时</span></div>
+            <div class="usage-foot"><span>已用 150.0 / 150.0</span><span>重置倒计时 1 天 3 小时</span></div>
             <div class="account-actions">
-              <button class="btn btn-primary">切换到此账号</button>
+              <button class="btn btn-primary">设为首选</button>
               <button class="btn btn-ghost">刷新用量</button>
               <button class="btn btn-ghost">解除冷却</button>
               <button class="btn btn-ghost">停用</button>
@@ -106,17 +103,15 @@
             </div>
           </article>
           <article class="account-card card">
-            <div class="account-top">
-              <div class="avatar">D</div>
-              <div class="account-meta"><strong>dev@workspace.local</strong><span>dev@workspace.local</span></div>
-              <span class="badge lime">可用</span>
-            </div>
-            <div class="usage-head"><span>SuperGrok</span><strong>12%</strong></div>
-            <div class="progress"><i style="width:12%"></i></div>
-            <div class="usage-foot"><span>已用 18.0 / 150.0</span><span>重置 6天 8小时</span></div>
+            <div class="account-top"><div class="avatar">D</div><div class="account-meta"><strong>work-key</strong><span>apikey:work-key · API Key</span></div><span class="badge lime">可用</span></div>
+            <div class="model-row"><span class="model-tag muted">尚未拉取模型</span></div>
+            <div class="usage-head"><span>套餐用量未同步</span><strong class="num">—</strong></div>
+            <div class="progress"><i style="width:0%"></i></div>
+            <div class="usage-foot"><span>点击「刷新用量」同步 Billing</span><span>重置时间未知</span></div>
             <div class="account-actions">
-              <button class="btn btn-primary">切换到此账号</button>
+              <button class="btn btn-primary">设为首选</button>
               <button class="btn btn-ghost">刷新用量</button>
+              <button class="btn btn-ghost">刷新模型</button>
               <button class="btn btn-ghost">停用</button>
               <button class="btn btn-danger">删除</button>
             </div>

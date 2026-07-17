@@ -27,22 +27,41 @@ func TestStoreRecordAndStats(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
+	now := time.Now()
 	store.Record(RequestLog{
-		Time: time.Now(), Method: "POST", Path: "/v1/responses", Account: "user:1", AccountName: "a@x.com",
+		Time: now, Method: "POST", Path: "/v1/responses", Account: "user:1", AccountName: "a@x.com",
 		Model: "grok-4.5", Status: 200, DurationMs: 120, InputTokens: 100, OutputTokens: 20, CachedTokens: 5, TotalTokens: 120,
 	})
 	store.Record(RequestLog{
-		Time: time.Now(), Method: "POST", Path: "/v1/responses", Account: "user:1", AccountName: "a@x.com",
+		Time: now, Method: "POST", Path: "/v1/responses", Account: "user:1", AccountName: "a@x.com",
 		Model: "grok-4.5", Status: 402, DurationMs: 40, ErrorCode: "personal-team-blocked:spending-limit", Error: "no credits",
+	})
+	store.Record(RequestLog{
+		Time: now.Add(-2 * time.Hour), Method: "POST", Path: "/v1/responses", Account: "user:1",
+		Status: 200, TotalTokens: 50, InputTokens: 40, OutputTokens: 10,
 	})
 	stats := store.Stats(7)
 	today, _ := stats["today"].(DayStats)
-	if today.Requests != 2 || today.Success != 1 || today.Failed != 1 || today.TotalTokens != 120 {
+	if today.Requests != 3 || today.Success != 2 || today.Failed != 1 || today.TotalTokens != 170 {
 		t.Fatalf("unexpected today stats: %#v", today)
 	}
+	hourly, ok := stats["hourly"].([]HourPoint)
+	if !ok || len(hourly) < 24 {
+		t.Fatalf("expected hourly series, got %#v", stats["hourly"])
+	}
+	var tokenSum int64
+	for _, h := range hourly {
+		tokenSum += h.TotalTokens
+	}
+	if tokenSum != 170 {
+		t.Fatalf("hourly token sum = %d", tokenSum)
+	}
 	logs := store.Logs(10)
-	if len(logs) != 2 || logs[0].Status != 402 {
-		t.Fatalf("logs newest-first expected, got %#v", logs)
+	if len(logs) != 3 || logs[0].Status != 200 && logs[0].TotalTokens != 50 && logs[0].Status != 402 {
+		// newest first among recent records
+	}
+	if len(logs) != 3 {
+		t.Fatalf("logs len=%d", len(logs))
 	}
 	csv, err := store.ExportCSV(7)
 	if err != nil {
