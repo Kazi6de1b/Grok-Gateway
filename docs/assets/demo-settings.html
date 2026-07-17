@@ -1,0 +1,87 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Grok Gateway — Settings</title>
+  <link rel="stylesheet" href="style.css">
+  <style>
+    html, body { width: 1280px; min-height: 820px; overflow: hidden; }
+    .app-shell { min-height: 820px; }
+    body { filter: brightness(1.12) contrast(1.06) saturate(1.08); }
+    .ambient { opacity: .18 !important; }
+    .card { background: linear-gradient(145deg,rgba(28,32,42,.96),rgba(16,18,26,.94)) !important; }
+  </style>
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">G</div>
+        <div><strong>Grok Gateway</strong><span>LOCAL CONTROL PLANE</span></div>
+      </div>
+      <nav>
+        <button class="nav-item"><span class="nav-icon">⌁</span>概览</button>
+        <button class="nav-item"><span class="nav-icon">◉</span>账号池</button>
+        <button class="nav-item active"><span class="nav-icon">⚙</span>配置</button>
+      </nav>
+      <div class="side-status">
+        <div class="pulse-dot"></div>
+        <div><strong>网关运行中</strong><span>v0.3.0 · 127.0.0.1</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">GATEWAY CONFIGURATION</p>
+          <h1>配置</h1>
+        </div>
+        <div class="top-actions">
+          <button class="btn btn-ghost">刷新用量</button>
+          <button class="btn btn-primary"><span>▶</span> 启动 Grok Build</button>
+        </div>
+      </header>
+
+      <section class="view active">
+        <form class="settings-layout">
+          <section class="card settings-card">
+            <div class="settings-heading">
+              <div class="setting-icon">⌁</div>
+              <div><h3>本地网关</h3><p>控制 Grok Build 连接到的本地入口。</p></div>
+            </div>
+            <label>监听地址
+              <input value="127.0.0.1:8787" readonly>
+              <small>安全限制：仅允许 127.0.0.1 或 localhost</small>
+            </label>
+            <label>Grok Build 上游
+              <input value="https://cli-chat-proxy.grok.com/v1" readonly>
+            </label>
+          </section>
+          <section class="card settings-card">
+            <div class="settings-heading">
+              <div class="setting-icon purple">⇄</div>
+              <div><h3>网络代理</h3><p>OAuth、用量查询和推理请求都从这里出站。</p></div>
+            </div>
+            <label>出站代理
+              <input value="http://127.0.0.1:7890" readonly>
+              <small>默认兼容 Clash / Mihomo mixed-port</small>
+            </label>
+            <label>账号冷却时间
+              <input value="5m" readonly>
+              <small>上游未返回 Retry-After 时使用</small>
+            </label>
+          </section>
+          <div class="settings-footer">
+            <div><strong>配置保存在 EXE 同目录</strong><span>修改网络设置后需重启程序生效。</span></div>
+            <button class="btn btn-primary" type="button">保存配置</button>
+          </div>
+        </form>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
