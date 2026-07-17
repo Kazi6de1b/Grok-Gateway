@@ -191,7 +191,8 @@ func AccountFromTokens(name string, tokens Tokens) config.Account {
 		name = firstNonEmpty(email, userID, "Grok Build account")
 	}
 	return config.Account{
-		Name: name, AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken,
+		Name: name, Kind: config.AccountKindOAuth,
+		AccessToken: tokens.AccessToken, RefreshToken: tokens.RefreshToken,
 		ExpiresAt: tokens.ExpiresAt, UserID: userID, Email: email, Enabled: true,
 	}
 }

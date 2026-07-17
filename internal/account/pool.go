@@ -95,11 +95,12 @@ func (a *RuntimeAccount) Token(ctx context.Context, force bool) (string, error) 
 	if !force && a.value.AccessToken != "" && (a.value.ExpiresAt.IsZero() || time.Now().Add(2*time.Minute).Before(a.value.ExpiresAt)) {
 		return a.value.AccessToken, nil
 	}
-	if a.value.RefreshToken == "" {
-		if !force && a.value.AccessToken != "" {
+	// API Key accounts (or any account without refresh) never refresh.
+	if a.value.RefreshToken == "" || a.value.Kind == config.AccountKindAPIKey {
+		if a.value.AccessToken != "" {
 			return a.value.AccessToken, nil
 		}
-		return "", errors.New("账号缺少 refresh_token，无法刷新")
+		return "", errors.New("账号缺少可用凭据")
 	}
 	tokens, err := a.oauth.Refresh(ctx, a.value.RefreshToken)
 	if err != nil {
@@ -259,6 +260,7 @@ func (p *Pool) Count() int {
 type Status struct {
 	Identity      string        `json:"identity"`
 	Name          string        `json:"name"`
+	Kind          string        `json:"kind,omitempty"`
 	Email         string        `json:"email,omitempty"`
 	Enabled       bool          `json:"enabled"`
 	Available     bool          `json:"available"`
@@ -277,8 +279,12 @@ func (p *Pool) Status() []Status {
 	for _, runtimeAccount := range p.accounts {
 		value := runtimeAccount.Snapshot()
 		identity := config.AccountIdentity(value)
+		kind := value.Kind
+		if kind == "" {
+			kind = config.AccountKindOAuth
+		}
 		result = append(result, Status{
-			Identity: identity, Name: value.Name, Email: value.Email, Enabled: value.Enabled,
+			Identity: identity, Name: value.Name, Kind: kind, Email: value.Email, Enabled: value.Enabled,
 			Available: runtimeAccount.Available(now), Preferred: identity == p.preferred,
 			InFlight: runtimeAccount.InFlight(), ExpiresAt: value.ExpiresAt,
 			CooldownUntil: runtimeAccount.CooldownUntil(), Usage: value.Usage,

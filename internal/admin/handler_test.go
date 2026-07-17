@@ -19,7 +19,7 @@ func TestDashboardAndStateDoNotExposeTokens(t *testing.T) {
 	store := adminTestStore(t)
 	oauth := account.OAuthClient{HTTP: http.DefaultClient}
 	pool := account.NewPool(store, oauth)
-	handler, err := NewHandler(http.NotFoundHandler(), store, pool, http.DefaultClient, oauth, "test", nil)
+	handler, err := NewHandler(http.NotFoundHandler(), store, pool, http.DefaultClient, oauth, "test", nil, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -39,8 +39,8 @@ func TestSettingsAPIStoresConfiguration(t *testing.T) {
 	store := adminTestStore(t)
 	oauth := account.OAuthClient{HTTP: http.DefaultClient}
 	pool := account.NewPool(store, oauth)
-	handler, _ := NewHandler(http.NotFoundHandler(), store, pool, http.DefaultClient, oauth, "test", nil)
-	body := `{"listen":"127.0.0.1:9900","upstream_base_url":"https://cli-chat-proxy.grok.com/v1","outbound_proxy":"http://127.0.0.1:7891","cooldown":"10m"}`
+	handler, _ := NewHandler(http.NotFoundHandler(), store, pool, http.DefaultClient, oauth, "test", nil, nil)
+	body := `{"listen":"127.0.0.1:9900","upstream_base_url":"https://cli-chat-proxy.grok.com/v1","outbound_proxy":"http://127.0.0.1:7891","cooldown":"10m","require_api_key":true}`
 	recorder := httptest.NewRecorder()
 	handler.ServeHTTP(recorder, httptest.NewRequest(http.MethodPut, "/api/settings", strings.NewReader(body)))
 	if recorder.Code != http.StatusOK {
@@ -48,7 +48,7 @@ func TestSettingsAPIStoresConfiguration(t *testing.T) {
 		t.Fatalf("settings response=%d %s", recorder.Code, data)
 	}
 	cfg := store.Snapshot()
-	if cfg.Listen != "127.0.0.1:9900" || cfg.OutboundProxy != "http://127.0.0.1:7891" || cfg.Cooldown != "10m" {
+	if cfg.Listen != "127.0.0.1:9900" || cfg.OutboundProxy != "http://127.0.0.1:7891" || cfg.Cooldown != "10m" || !cfg.RequireAPIKey {
 		t.Fatalf("settings not saved: %#v", cfg)
 	}
 }

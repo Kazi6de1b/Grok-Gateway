@@ -20,6 +20,7 @@ import (
 	"grok-gateway/internal/account"
 	"grok-gateway/internal/admin"
 	"grok-gateway/internal/config"
+	"grok-gateway/internal/observe"
 	gatewayproxy "grok-gateway/internal/proxy"
 )
 
@@ -227,11 +228,15 @@ func serve(ctx context.Context, store *config.Store, client *http.Client, oauth 
 func newServer(store *config.Store, client *http.Client, oauth account.OAuthClient) (*http.Server, net.Listener, http.Handler, error) {
 	cfg := store.Snapshot()
 	pool := account.NewPool(store, oauth)
-	proxyHandler, err := gatewayproxy.NewHandler(cfg, pool, client, slog.Default())
+	obs, err := observe.New(filepath.Join(filepath.Dir(store.Path()), "data"))
+	if err != nil {
+		return nil, nil, nil, fmt.Errorf("初始化观测存储: %w", err)
+	}
+	proxyHandler, err := gatewayproxy.NewHandler(cfg, pool, client, slog.Default(), store, obs)
 	if err != nil {
 		return nil, nil, nil, err
 	}
-	handler, err := admin.NewHandler(proxyHandler, store, pool, client, oauth, version, slog.Default())
+	handler, err := admin.NewHandler(proxyHandler, store, pool, client, oauth, version, slog.Default(), obs)
 	if err != nil {
 		return nil, nil, nil, err
 	}

@@ -19,6 +19,8 @@
       <nav>
         <button class="nav-item active" data-view="overview"><span class="nav-icon">⌁</span>概览</button>
         <button class="nav-item" data-view="accounts"><span class="nav-icon">◉</span>账号池</button>
+        <button class="nav-item" data-view="stats"><span class="nav-icon">▣</span>统计</button>
+        <button class="nav-item" data-view="logs"><span class="nav-icon">≡</span>日志</button>
         <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>配置</button>
       </nav>
       <div class="side-status">
@@ -35,6 +37,7 @@
         </div>
         <div class="top-actions">
           <button class="btn btn-ghost" id="refresh-all">刷新用量</button>
+          <button class="btn btn-ghost" id="refresh-models">刷新模型</button>
           <button class="btn btn-primary" id="launch-grok"><span>▶</span> 启动 Grok Build</button>
         </div>
       </header>
@@ -53,11 +56,11 @@
           <div class="orb-wrap"><div class="orb"><span>G</span></div><div class="orbit"></div></div>
         </div>
 
-        <div class="stats-grid">
+        <div class="stats-grid" id="overview-stats">
           <article class="stat card"><span>账号总数</span><strong id="stat-total">0</strong><small id="stat-total-note">等待添加账号</small></article>
           <article class="stat card"><span>当前可用</span><strong id="stat-available">0</strong><small class="good">自动健康路由</small></article>
-          <article class="stat card"><span>平均用量</span><strong id="stat-usage">—</strong><small>来自 Grok /usage</small></article>
-          <article class="stat card"><span>最近重置</span><strong class="compact" id="stat-reset">—</strong><small id="stat-reset-note">尚未同步</small></article>
+          <article class="stat card"><span>今日 Token</span><strong id="stat-tokens">—</strong><small id="stat-tokens-note">本地计量</small></article>
+          <article class="stat card"><span>今日请求</span><strong id="stat-requests">—</strong><small id="stat-requests-note">成功 / 失败</small></article>
         </div>
 
         <div class="content-grid">
@@ -74,16 +77,84 @@
               <div class="route-line"><i></i></div>
               <div class="route-node"><b>03</b><div><strong>出站代理</strong><span id="route-proxy">127.0.0.1:7890</span></div></div>
             </div>
+            <div class="mini-chart-wrap">
+              <span class="overline">7 日 Token</span>
+              <div id="overview-chart" class="mini-chart"></div>
+            </div>
           </section>
         </div>
       </section>
 
       <section class="view" id="view-accounts">
         <div class="section-toolbar card">
-          <div><span class="overline">OAUTH ACCOUNT POOL</span><h2>托管账号</h2><p>设为首选会立即迁移新请求；首选账号不可用时自动故障转移。</p></div>
-          <button class="btn btn-primary" id="add-account">＋ 添加账号</button>
+          <div>
+            <span class="overline">OAUTH ACCOUNT POOL</span>
+            <h2>托管账号</h2>
+            <p>支持 Device OAuth 与自定义 API Key。设为首选会立即迁移新请求。</p>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" id="add-api-key">＋ API Key</button>
+            <button class="btn btn-primary" id="add-account">＋ OAuth 账号</button>
+          </div>
         </div>
         <div id="account-grid" class="account-grid"></div>
+      </section>
+
+      <section class="view" id="view-stats">
+        <div class="section-toolbar card">
+          <div>
+            <span class="overline">LOCAL TOKEN METERING</span>
+            <h2>用量统计</h2>
+            <p>从每次 Responses 响应解析 input / output / cached tokens，按日聚合。与上游 Billing 周期互补。</p>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" id="export-csv">导出 CSV</button>
+            <button class="btn btn-ghost" id="reload-stats">刷新统计</button>
+          </div>
+        </div>
+        <div class="stats-grid four">
+          <article class="stat card"><span>区间请求</span><strong id="range-requests">0</strong><small id="range-success">—</small></article>
+          <article class="stat card"><span>输入 Token</span><strong id="range-input">0</strong><small>prompt</small></article>
+          <article class="stat card"><span>输出 Token</span><strong id="range-output">0</strong><small>completion</small></article>
+          <article class="stat card"><span>缓存命中</span><strong id="range-cached">0</strong><small>cached_tokens</small></article>
+        </div>
+        <div class="content-grid">
+          <section class="card panel">
+            <div class="panel-head"><div><span class="overline">TREND</span><h3>7 日 Token 趋势</h3></div></div>
+            <div id="stats-chart" class="big-chart"></div>
+          </section>
+          <section class="card panel">
+            <div class="panel-head"><div><span class="overline">BY ACCOUNT</span><h3>账号对比</h3></div></div>
+            <div id="stats-accounts" class="mini-list"></div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-logs">
+        <div class="section-toolbar card">
+          <div>
+            <span class="overline">REQUEST LOG</span>
+            <h2>请求日志</h2>
+            <p>记录方法、路径、账号、模型、状态、耗时与 Token。默认不保存完整 prompt。</p>
+          </div>
+          <div class="toolbar-actions">
+            <button class="btn btn-ghost" id="reload-logs">刷新</button>
+            <button class="btn btn-danger" id="clear-logs">清空日志</button>
+          </div>
+        </div>
+        <div class="card log-panel">
+          <div class="log-table-wrap">
+            <table class="log-table">
+              <thead>
+                <tr>
+                  <th>时间</th><th>方法</th><th>路径</th><th>账号</th><th>模型</th>
+                  <th>状态</th><th>耗时</th><th>Token</th><th>错误</th>
+                </tr>
+              </thead>
+              <tbody id="log-body"></tbody>
+            </table>
+          </div>
+        </div>
       </section>
 
       <section class="view" id="view-settings">
@@ -98,7 +169,29 @@
             <label>出站代理<input name="outbound_proxy" autocomplete="off" placeholder="http://127.0.0.1:7890"><small>默认兼容 Clash / Mihomo mixed-port</small></label>
             <label>账号冷却时间<input name="cooldown" autocomplete="off" placeholder="5m"><small>上游未返回 Retry-After 时使用</small></label>
           </section>
-          <div class="settings-footer"><div><strong>配置保存在 EXE 同目录</strong><span>修改网络设置后需重启程序生效。</span></div><button class="btn btn-primary" type="submit">保存配置</button></div>
+          <section class="card settings-card full">
+            <div class="settings-heading"><div class="setting-icon">🔑</div><div><h3>网关 API Key</h3><p>可选。启用后访问 /v1/* 需携带 Authorization: Bearer &lt;key&gt; 或 x-api-key。管理界面不受影响。真实 xAI 鉴权仍由账号池完成。</p></div></div>
+            <div class="key-row">
+              <div>
+                <span class="key-status" id="key-status">未设置网关密钥</span>
+                <label class="check-label"><input type="checkbox" name="require_api_key" id="require-api-key"> 强制校验网关 API Key</label>
+                <label class="check-label"><input type="checkbox" name="log_request_bodies" id="log-bodies"> 在日志中记录请求体摘要（隐私风险）</label>
+              </div>
+              <div class="toolbar-actions">
+                <button class="btn btn-ghost" type="button" id="rotate-key">生成/轮换密钥</button>
+                <button class="btn btn-danger" type="button" id="clear-key">清除密钥</button>
+              </div>
+            </div>
+            <div class="key-reveal" id="key-reveal" hidden>
+              <span class="overline">请立即复制，仅显示一次</span>
+              <code id="key-once"></code>
+              <button class="btn btn-ghost" type="button" id="copy-key">复制</button>
+            </div>
+          </section>
+          <div class="settings-footer">
+            <div><strong>配置保存在 EXE 同目录</strong><span>修改网络设置后需重启程序生效。API Key 开关即时写入，/v1 校验立即生效。</span></div>
+            <button class="btn btn-primary" type="submit">保存配置</button>
+          </div>
         </form>
       </section>
     </main>
@@ -116,8 +209,21 @@
       <div class="oauth-wait"><i></i><span id="oauth-status">准备中</span></div>
     </div>
   </div>
+
+  <div class="modal-backdrop" id="apikey-modal" hidden>
+    <div class="modal card">
+      <button class="modal-close" data-close-apikey>×</button>
+      <div class="oauth-logo">K</div>
+      <span class="overline">API KEY ACCOUNT</span>
+      <h2>添加 API Key 账号</h2>
+      <p>用于 xAI Console API Key。与 OAuth 账号共用池。Grok Build 原生路径通常仍推荐 OAuth。</p>
+      <label class="modal-label">显示名称<input id="apikey-name" placeholder="optional"></label>
+      <label class="modal-label">API Key<input id="apikey-value" placeholder="xai-..." autocomplete="off"></label>
+      <button class="btn btn-primary wide" id="apikey-save">保存到账号池</button>
+    </div>
+  </div>
+
   <div class="toast-stack" id="toasts"></div>
   <script src="/assets/app.js"></script>
 </body>
 </html>
-

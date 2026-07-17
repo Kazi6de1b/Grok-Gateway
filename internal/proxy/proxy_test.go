@@ -51,12 +51,12 @@ func TestProxyPreservesProtocolAndPinsSession(t *testing.T) {
 	}
 	client := upstream.Client()
 	pool := account.NewPool(store, account.OAuthClient{HTTP: client})
-	handler, err := NewHandler(cfg, pool, client, nil)
+	handler, err := NewHandler(cfg, pool, client, nil, store, nil)
 	if err != nil {
 		t.Fatal(err)
 	}
 	for range 2 {
-		request := httptest.NewRequest(http.MethodPost, "/v1/responses?trace=1", strings.NewReader(`{"input":"hello"}`))
+		request := httptest.NewRequest(http.MethodPost, "/v1/responses?trace=1", strings.NewReader(`{"input":"hello","model":"grok-4.5"}`))
 		request.Header.Set("Content-Type", "application/json")
 		request.Header.Set("x-grok-session-id", "same-session")
 		request.Header.Set("Authorization", "Bearer downstream-token")
@@ -112,7 +112,7 @@ func TestProxyFailsOverAfterRateLimit(t *testing.T) {
 		t.Fatal(err)
 	}
 	pool := account.NewPool(store, account.OAuthClient{HTTP: upstream.Client()})
-	handler, err := NewHandler(cfg, pool, upstream.Client(), nil)
+	handler, err := NewHandler(cfg, pool, upstream.Client(), nil, store, nil)
 	if err != nil {
 		t.Fatal(err)
 	}

@@ -3,6 +3,9 @@
   "upstream_base_url": "https://cli-chat-proxy.grok.com/v1",
   "outbound_proxy": "http://127.0.0.1:7890",
   "cooldown": "5m",
+  "require_api_key": false,
+  "gateway_api_key": "",
+  "log_request_bodies": false,
   "accounts": []
 }
 

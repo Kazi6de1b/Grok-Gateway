@@ -18,8 +18,14 @@ const (
 	DefaultOutboundProxy   = "http://127.0.0.1:7890"
 )
 
+const (
+	AccountKindOAuth  = "oauth"
+	AccountKindAPIKey = "api_key"
+)
+
 type Account struct {
 	Name         string    `json:"name"`
+	Kind         string    `json:"kind,omitempty"` // oauth | api_key
 	AccessToken  string    `json:"access_token"`
 	RefreshToken string    `json:"refresh_token"`
 	ExpiresAt    time.Time `json:"expires_at"`
@@ -50,6 +56,11 @@ type Config struct {
 	OutboundProxy    string    `json:"outbound_proxy"`
 	Cooldown         string    `json:"cooldown"`
 	PreferredAccount string    `json:"preferred_account,omitempty"`
+	// GatewayAPIKey protects /v1/* when RequireAPIKey is true.
+	GatewayAPIKey string `json:"gateway_api_key,omitempty"`
+	RequireAPIKey bool   `json:"require_api_key,omitempty"`
+	// LogRequestBodies stores truncated request body previews in request logs (privacy risk).
+	LogRequestBodies bool      `json:"log_request_bodies,omitempty"`
 	Accounts         []Account `json:"accounts"`
 }
 
@@ -218,7 +229,7 @@ func (s *Store) DeleteAccount(identity string) error {
 	return fmt.Errorf("账号 %q 不存在", identity)
 }
 
-func (s *Store) UpdateSettings(listen, upstream, outboundProxy, cooldown string) error {
+func (s *Store) UpdateSettings(listen, upstream, outboundProxy, cooldown string, requireAPIKey *bool, gatewayAPIKey *string, logBodies *bool) error {
 	s.mu.Lock()
 	defer s.mu.Unlock()
 	next := s.cfg
@@ -226,11 +237,59 @@ func (s *Store) UpdateSettings(listen, upstream, outboundProxy, cooldown string)
 	next.UpstreamBaseURL = strings.TrimSpace(upstream)
 	next.OutboundProxy = strings.TrimSpace(outboundProxy)
 	next.Cooldown = strings.TrimSpace(cooldown)
+	if requireAPIKey != nil {
+		next.RequireAPIKey = *requireAPIKey
+	}
+	if gatewayAPIKey != nil {
+		next.GatewayAPIKey = strings.TrimSpace(*gatewayAPIKey)
+	}
+	if logBodies != nil {
+		next.LogRequestBodies = *logBodies
+	}
 	if err := next.Validate(); err != nil {
 		return err
 	}
 	s.cfg = next
 	return s.saveLocked()
+}
+
+func (s *Store) SetGatewayAPIKey(key string, require bool) error {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	s.cfg.GatewayAPIKey = strings.TrimSpace(key)
+	s.cfg.RequireAPIKey = require
+	return s.saveLocked()
+}
+
+func (s *Store) AddAPIKeyAccount(name, apiKey string) (Account, error) {
+	s.mu.Lock()
+	defer s.mu.Unlock()
+	name = strings.TrimSpace(name)
+	apiKey = strings.TrimSpace(apiKey)
+	if apiKey == "" {
+		return Account{}, errors.New("API Key 不能为空")
+	}
+	if name == "" {
+		name = "api-key-" + shortID(apiKey)
+	}
+	value := Account{
+		Name: name, Kind: AccountKindAPIKey, AccessToken: apiKey, Enabled: true,
+	}
+	for index := range s.cfg.Accounts {
+		if accountIdentity(s.cfg.Accounts[index]) == accountIdentity(value) || s.cfg.Accounts[index].Name == name {
+			s.cfg.Accounts[index] = value
+			return value, s.saveLocked()
+		}
+	}
+	s.cfg.Accounts = append(s.cfg.Accounts, value)
+	return value, s.saveLocked()
+}
+
+func shortID(value string) string {
+	if len(value) <= 8 {
+		return value
+	}
+	return value[len(value)-8:]
 }
 
 func accountIdentity(value Account) string {
@@ -239,6 +298,14 @@ func accountIdentity(value Account) string {
 	}
 	if value.Email != "" {
 		return "email:" + strings.ToLower(value.Email)
+	}
+	if value.Kind == AccountKindAPIKey {
+		// Stable id for explicit API key accounts without OAuth subject.
+		sum := value.Name
+		if sum == "" {
+			sum = shortID(value.AccessToken)
+		}
+		return "apikey:" + strings.ToLower(sum)
 	}
 	return "name:" + value.Name
 }

@@ -27,7 +27,9 @@ internal/config/config.go         JSON 配置、账号和用量持久化
 internal/account/oauth.go         Device OAuth 与 Token 刷新
 internal/account/pool.go          动态账号池、首选账号和会话路由
 internal/account/usage.go         Billing 用量获取和解析
-internal/proxy/proxy.go           Grok Build 原生 HTTP/SSE 代理
+internal/proxy/proxy.go           Grok Build 原生 HTTP/SSE 代理 + 请求观测钩子
+internal/observe/store.go         请求日志、Token 日聚合、模型缓存
+internal/account/models.go        每账号 /models 拉取
 internal/admin/handler.go         本地控制台管理 API
 internal/admin/static/index.html  控制台结构
 internal/admin/static/style.css   控制台视觉样式
@@ -72,8 +74,16 @@ POST /api/accounts/enabled
 POST /api/accounts/delete
 POST /api/accounts/usage
 POST /api/accounts/usage-all
+POST /api/accounts/models
+POST /api/accounts/models-all
+POST /api/accounts/api-key
 POST /api/accounts/cooldown/clear
+GET  /api/stats
+GET  /api/stats/export
+GET  /api/logs
+POST /api/logs/clear
 PUT  /api/settings
+POST /api/settings/gateway-key
 POST /api/grok/launch
 ```
 

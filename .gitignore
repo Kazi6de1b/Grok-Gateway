@@ -9,6 +9,10 @@
 **/config.json
 !config.example.json
 
+# Local metrics / request logs
+/data/
+**/data/
+
 # Local launch helper written by the GUI
 /启动-Grok-Build.cmd
 *.cmd

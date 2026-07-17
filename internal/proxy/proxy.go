@@ -15,6 +15,7 @@ import (
 
 	"grok-gateway/internal/account"
 	"grok-gateway/internal/config"
+	"grok-gateway/internal/observe"
 )
 
 const maxRequestBody = 64 << 20
@@ -27,9 +28,11 @@ type Handler struct {
 	logger    *slog.Logger
 	startedAt time.Time
 	localBase string
+	store     *config.Store
+	observe   *observe.Store
 }
 
-func NewHandler(cfg config.Config, pool *account.Pool, client *http.Client, logger *slog.Logger) (*Handler, error) {
+func NewHandler(cfg config.Config, pool *account.Pool, client *http.Client, logger *slog.Logger, store *config.Store, obs *observe.Store) (*Handler, error) {
 	upstream, err := url.Parse(strings.TrimRight(cfg.UpstreamBaseURL, "/"))
 	if err != nil {
 		return nil, err
@@ -40,6 +43,7 @@ func NewHandler(cfg config.Config, pool *account.Pool, client *http.Client, logg
 	return &Handler{
 		pool: pool, client: client, upstream: upstream, cooldown: cfg.CooldownDuration(),
 		logger: logger, startedAt: time.Now(), localBase: "http://" + cfg.Listen + "/v1",
+		store: store, observe: obs,
 	}, nil
 }
 
@@ -58,7 +62,37 @@ func (h *Handler) ServeHTTP(w http.ResponseWriter, r *http.Request) {
 		writeError(w, http.StatusNotFound, "仅支持 Grok Build 原生 /v1/* 路径")
 		return
 	}
+	if !h.authorizeGateway(w, r) {
+		return
+	}
 	h.forward(w, r)
+}
+
+func (h *Handler) authorizeGateway(w http.ResponseWriter, r *http.Request) bool {
+	if h.store == nil {
+		return true
+	}
+	cfg := h.store.Snapshot()
+	if !cfg.RequireAPIKey || strings.TrimSpace(cfg.GatewayAPIKey) == "" {
+		return true
+	}
+	provided := extractClientKey(r)
+	if provided == "" || provided != cfg.GatewayAPIKey {
+		writeError(w, http.StatusUnauthorized, "需要有效的网关 API Key（Authorization: Bearer <key> 或 x-api-key）")
+		return false
+	}
+	return true
+}
+
+func extractClientKey(r *http.Request) string {
+	if key := strings.TrimSpace(r.Header.Get("x-api-key")); key != "" {
+		return key
+	}
+	auth := strings.TrimSpace(r.Header.Get("Authorization"))
+	if len(auth) > 7 && strings.EqualFold(auth[:7], "Bearer ") {
+		return strings.TrimSpace(auth[7:])
+	}
+	return ""
 }
 
 func (h *Handler) health(w http.ResponseWriter) {
@@ -68,6 +102,7 @@ func (h *Handler) health(w http.ResponseWriter) {
 }
 
 func (h *Handler) forward(w http.ResponseWriter, incoming *http.Request) {
+	started := time.Now()
 	body, err := io.ReadAll(io.LimitReader(incoming.Body, maxRequestBody+1))
 	if err != nil {
 		writeError(w, http.StatusBadRequest, "读取请求失败")
@@ -77,11 +112,13 @@ func (h *Handler) forward(w http.ResponseWriter, incoming *http.Request) {
 		writeError(w, http.StatusRequestEntityTooLarge, "请求体超过 64 MiB")
 		return
 	}
+	requestModel := observe.ExtractModelFromRequest(body)
 	session := sessionKey(incoming, body)
 	var previous *account.RuntimeAccount
 	for attempt := 0; attempt < h.pool.Count(); attempt++ {
 		selected, pinned, selectErr := h.pool.SelectNext(session, previous)
 		if selectErr != nil {
+			h.record(incoming, body, requestModel, nil, http.StatusTooManyRequests, time.Since(started), nil, "所有 Grok Build 账号当前均不可用或正在冷却", "no_available_account")
 			writeError(w, http.StatusTooManyRequests, "所有 Grok Build 账号当前均不可用或正在冷却")
 			return
 		}
@@ -89,6 +126,7 @@ func (h *Handler) forward(w http.ResponseWriter, incoming *http.Request) {
 		if requestErr != nil {
 			selected.Release()
 			h.logger.Error("upstream_request_failed", "account", selected.Name(), "error", requestErr)
+			h.record(incoming, body, requestModel, selected, http.StatusBadGateway, time.Since(started), nil, requestErr.Error(), "upstream_error")
 			writeError(w, http.StatusBadGateway, "Grok Build 上游请求失败: "+requestErr.Error())
 			return
 		}
@@ -127,14 +165,78 @@ func (h *Handler) forward(w http.ResponseWriter, incoming *http.Request) {
 		}
 		defer selected.Release()
 		defer response.Body.Close()
+
+		var capture bytes.Buffer
+		tee := io.TeeReader(response.Body, &limitedBuffer{buf: &capture, remain: 2 << 20})
 		copyHeaders(w.Header(), response.Header)
+		// Surface a clearer message for common free-tier / model mistakes.
+		if response.StatusCode == http.StatusPaymentRequired {
+			w.Header().Set("X-Gateway-Hint", "402 多为模型/产品路径或 credits 问题；Grok Build 请用 /v1/responses + 账号可用模型（如 grok-4.5）")
+		}
 		w.WriteHeader(response.StatusCode)
-		if err := streamCopy(w, response.Body); err != nil && !errors.Is(err, context.Canceled) {
+		if err := streamCopy(w, tee); err != nil && !errors.Is(err, context.Canceled) {
 			h.logger.Warn("downstream_stream_ended", "error", err)
 		}
+		h.record(incoming, body, requestModel, selected, response.StatusCode, time.Since(started), capture.Bytes(), "", "")
 		return
 	}
+	h.record(incoming, body, requestModel, nil, http.StatusTooManyRequests, time.Since(started), nil, "所有 Grok Build 账号额度均已用尽或正在冷却", "all_exhausted")
 	writeError(w, http.StatusTooManyRequests, "所有 Grok Build 账号额度均已用尽或正在冷却")
+}
+
+func (h *Handler) record(incoming *http.Request, body []byte, requestModel string, selected *account.RuntimeAccount, status int, elapsed time.Duration, responseBody []byte, errMsg, errCode string) {
+	if h.observe == nil {
+		return
+	}
+	entry := observe.RequestLog{
+		Time: time.Now().UTC(), Method: incoming.Method, Path: incoming.URL.Path,
+		Model: requestModel, Status: status, DurationMs: elapsed.Milliseconds(),
+		Error: errMsg, ErrorCode: errCode,
+	}
+	if selected != nil {
+		entry.Account = selected.Identity()
+		entry.AccountName = selected.Name()
+	}
+	if len(responseBody) > 0 {
+		in, out, cached, total, model, code, msg := observe.ParseUsageFromBody(responseBody)
+		entry.InputTokens, entry.OutputTokens, entry.CachedTokens, entry.TotalTokens = in, out, cached, total
+		if model != "" {
+			entry.Model = model
+		}
+		if code != "" {
+			entry.ErrorCode = code
+		}
+		if msg != "" && entry.Error == "" {
+			entry.Error = msg
+		}
+	}
+	if entry.Error == "" && status >= 400 && len(responseBody) > 0 {
+		_, _, _, _, _, code, msg := observe.ParseUsageFromBody(responseBody)
+		if code != "" {
+			entry.ErrorCode = code
+		}
+		if msg != "" {
+			entry.Error = truncate(msg, 240)
+		}
+	}
+	if entry.Model == "" {
+		entry.Model = requestModel
+	}
+	if h.store != nil && h.store.Snapshot().LogRequestBodies && len(body) > 0 {
+		// Keep a tiny preview only when explicitly enabled.
+		preview := truncate(string(body), 200)
+		if entry.Error == "" {
+			entry.Error = "body:" + preview
+		}
+	}
+	h.observe.Record(entry)
+}
+
+func truncate(value string, max int) string {
+	if len(value) <= max {
+		return value
+	}
+	return value[:max] + "…"
 }
 
 func (h *Handler) do(ctx context.Context, incoming *http.Request, body []byte, selected *account.RuntimeAccount, forceRefresh bool) (*http.Response, error) {
@@ -153,6 +255,7 @@ func (h *Handler) do(ctx context.Context, incoming *http.Request, body []byte, s
 	request.Header = incoming.Header.Clone()
 	stripHopHeaders(request.Header)
 	request.Header.Del("Proxy-Authorization")
+	request.Header.Del("x-api-key")
 	request.Header.Set("Authorization", "Bearer "+token)
 	request.Header.Set("X-XAI-Token-Auth", "xai-grok-cli")
 	setDefault(request.Header, "x-grok-client-version", "0.2.101")
@@ -230,6 +333,27 @@ func setDefault(header http.Header, name, value string) {
 	if header.Get(name) == "" {
 		header.Set(name, value)
 	}
+}
+
+// limitedBuffer captures up to remain bytes for usage parsing without unbounded memory.
+type limitedBuffer struct {
+	buf    *bytes.Buffer
+	remain int
+}
+
+func (l *limitedBuffer) Write(p []byte) (int, error) {
+	if l.remain > 0 {
+		chunk := p
+		if len(chunk) > l.remain {
+			chunk = chunk[:l.remain]
+		}
+		n, err := l.buf.Write(chunk)
+		l.remain -= n
+		if err != nil {
+			return len(p), err
+		}
+	}
+	return len(p), nil
 }
 
 func streamCopy(writer http.ResponseWriter, reader io.Reader) error {
