@@ -1,0 +1,123 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1">
+  <meta name="color-scheme" content="dark">
+  <title>Grok Gateway</title>
+  <link rel="stylesheet" href="/assets/style.css">
+</head>
+<body>
+  <div class="ambient ambient-a"></div>
+  <div class="ambient ambient-b"></div>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <div class="brand">
+        <div class="brand-mark">G</div>
+        <div><strong>Grok Gateway</strong><span>LOCAL CONTROL PLANE</span></div>
+      </div>
+      <nav>
+        <button class="nav-item active" data-view="overview"><span class="nav-icon">⌁</span>概览</button>
+        <button class="nav-item" data-view="accounts"><span class="nav-icon">◉</span>账号池</button>
+        <button class="nav-item" data-view="settings"><span class="nav-icon">⚙</span>配置</button>
+      </nav>
+      <div class="side-status">
+        <div class="pulse-dot"></div>
+        <div><strong>网关运行中</strong><span id="side-version">正在连接…</span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow" id="page-eyebrow">CONTROL CENTER</p>
+          <h1 id="page-title">运行概览</h1>
+        </div>
+        <div class="top-actions">
+          <button class="btn btn-ghost" id="refresh-all">刷新用量</button>
+          <button class="btn btn-primary" id="launch-grok"><span>▶</span> 启动 Grok Build</button>
+        </div>
+      </header>
+
+      <section class="view active" id="view-overview">
+        <div class="hero card">
+          <div class="hero-copy">
+            <span class="status-chip"><i></i> API GATEWAY ONLINE</span>
+            <h2>Grok Build，<em>流量由你掌控。</em></h2>
+            <p>账号池自动接管 OAuth、用量和故障迁移。额度耗尽时，请求会无感切换到下一个可用账号。</p>
+            <div class="endpoint-row">
+              <code id="base-url">http://127.0.0.1:8787/v1</code>
+              <button class="icon-btn" id="copy-base" title="复制">⧉</button>
+            </div>
+          </div>
+          <div class="orb-wrap"><div class="orb"><span>G</span></div><div class="orbit"></div></div>
+        </div>
+
+        <div class="stats-grid">
+          <article class="stat card"><span>账号总数</span><strong id="stat-total">0</strong><small id="stat-total-note">等待添加账号</small></article>
+          <article class="stat card"><span>当前可用</span><strong id="stat-available">0</strong><small class="good">自动健康路由</small></article>
+          <article class="stat card"><span>平均用量</span><strong id="stat-usage">—</strong><small>来自 Grok /usage</small></article>
+          <article class="stat card"><span>最近重置</span><strong class="compact" id="stat-reset">—</strong><small id="stat-reset-note">尚未同步</small></article>
+        </div>
+
+        <div class="content-grid">
+          <section class="card panel">
+            <div class="panel-head"><div><span class="overline">ACCOUNT POOL</span><h3>账号状态</h3></div><button class="text-btn" data-go="accounts">管理全部 →</button></div>
+            <div id="overview-accounts" class="mini-list"></div>
+          </section>
+          <section class="card panel network-panel">
+            <div class="panel-head"><div><span class="overline">NETWORK</span><h3>流量路径</h3></div><span class="live-badge">LIVE</span></div>
+            <div class="route-map">
+              <div class="route-node"><b>01</b><div><strong>Grok Build</strong><span>本地客户端</span></div></div>
+              <div class="route-line"><i></i></div>
+              <div class="route-node active"><b>02</b><div><strong>Gateway</strong><span id="route-listen">127.0.0.1:8787</span></div></div>
+              <div class="route-line"><i></i></div>
+              <div class="route-node"><b>03</b><div><strong>出站代理</strong><span id="route-proxy">127.0.0.1:7890</span></div></div>
+            </div>
+          </section>
+        </div>
+      </section>
+
+      <section class="view" id="view-accounts">
+        <div class="section-toolbar card">
+          <div><span class="overline">OAUTH ACCOUNT POOL</span><h2>托管账号</h2><p>设为首选会立即迁移新请求；首选账号不可用时自动故障转移。</p></div>
+          <button class="btn btn-primary" id="add-account">＋ 添加账号</button>
+        </div>
+        <div id="account-grid" class="account-grid"></div>
+      </section>
+
+      <section class="view" id="view-settings">
+        <form id="settings-form" class="settings-layout">
+          <section class="card settings-card">
+            <div class="settings-heading"><div class="setting-icon">⌁</div><div><h3>本地网关</h3><p>控制 Grok Build 连接到的本地入口。</p></div></div>
+            <label>监听地址<input name="listen" autocomplete="off" placeholder="127.0.0.1:8787"><small>安全限制：仅允许 127.0.0.1 或 localhost</small></label>
+            <label>Grok Build 上游<input name="upstream_base_url" autocomplete="off"></label>
+          </section>
+          <section class="card settings-card">
+            <div class="settings-heading"><div class="setting-icon purple">⇄</div><div><h3>网络代理</h3><p>OAuth、用量查询和推理请求都从这里出站。</p></div></div>
+            <label>出站代理<input name="outbound_proxy" autocomplete="off" placeholder="http://127.0.0.1:7890"><small>默认兼容 Clash / Mihomo mixed-port</small></label>
+            <label>账号冷却时间<input name="cooldown" autocomplete="off" placeholder="5m"><small>上游未返回 Retry-After 时使用</small></label>
+          </section>
+          <div class="settings-footer"><div><strong>配置保存在 EXE 同目录</strong><span>修改网络设置后需重启程序生效。</span></div><button class="btn btn-primary" type="submit">保存配置</button></div>
+        </form>
+      </section>
+    </main>
+  </div>
+
+  <div class="modal-backdrop" id="oauth-modal" hidden>
+    <div class="modal card">
+      <button class="modal-close" data-close-modal>×</button>
+      <div class="oauth-logo">G</div>
+      <span class="overline">DEVICE OAUTH</span>
+      <h2>连接 Grok Build 账号</h2>
+      <p id="oauth-message">正在向 xAI 请求安全授权链接…</p>
+      <div class="code-box" id="oauth-code" hidden><span>授权码</span><strong>••••••</strong></div>
+      <a class="btn btn-primary wide" id="oauth-link" target="_blank" rel="noopener" hidden>打开授权页面</a>
+      <div class="oauth-wait"><i></i><span id="oauth-status">准备中</span></div>
+    </div>
+  </div>
+  <div class="toast-stack" id="toasts"></div>
+  <script src="/assets/app.js"></script>
+</body>
+</html>
+

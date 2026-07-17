@@ -1,0 +1,8 @@
+{
+  "listen": "127.0.0.1:8787",
+  "upstream_base_url": "https://cli-chat-proxy.grok.com/v1",
+  "outbound_proxy": "http://127.0.0.1:7890",
+  "cooldown": "5m",
+  "accounts": []
+}
+

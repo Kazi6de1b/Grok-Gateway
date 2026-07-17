@@ -1,0 +1,22 @@
+# Build output & local binaries
+/dist/
+*.exe
+*.log
+
+# Runtime config with OAuth tokens — never commit
+/config.json
+/config.json.tmp
+**/config.json
+!config.example.json
+
+# Local launch helper written by the GUI
+/启动-Grok-Build.cmd
+*.cmd
+
+# IDE / OS
+.idea/
+.vscode/
+*.swp
+.DS_Store
+Thumbs.db
+
