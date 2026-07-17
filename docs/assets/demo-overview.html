@@ -12,6 +12,19 @@
     body { filter: brightness(1.08) contrast(1.04) saturate(1.06); }
     .ambient { opacity: .16 !important; }
     .orb-wrap { display: grid !important; }
+    /* Screenshot: no fade / motion — fully settled frame */
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+    .view, .view.active {
+      display: block !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .pulse-dot, .orbit, .route-line i, .status-chip i {
+      animation: none !important;
+    }
   </style>
 </head>
 <body>

@@ -12,6 +12,16 @@
     body { filter: brightness(1.08) contrast(1.04) saturate(1.06); }
     .ambient { opacity: .16 !important; }
     .account-grid { grid-template-columns: repeat(2, minmax(0, 1fr)) !important; }
+    *, *::before, *::after {
+      animation: none !important;
+      transition: none !important;
+    }
+    .view, .view.active {
+      display: block !important;
+      opacity: 1 !important;
+      transform: none !important;
+    }
+    .pulse-dot { animation: none !important; }
   </style>
 </head>
 <body>
